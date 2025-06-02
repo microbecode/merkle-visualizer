@@ -231,3 +231,26 @@ a.secondary {
   fill: #00796b;
   font-weight: bold;
 }
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.optionsGrid > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.optionsGrid label {
+  white-space: nowrap;
+}
+
+.optionsGrid select {
+  flex: 1;
+  min-width: 0;
+}

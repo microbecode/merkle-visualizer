@@ -18,6 +18,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Footer } from './components/Footer';
 
 const hashFunctions = [
   { label: "Keccak", value: "keccak" },
@@ -144,60 +145,46 @@ export default function MerkleTreePage() {
   };
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <main className={styles.main}>
         <h1>Merkle Tree Visualizer</h1>        
-        <div>
-          <label htmlFor="hash-fn">Hash Function: </label>
-          <select
-            id="hash-fn"
-            value={hashFunction}
-            onChange={e => setHashFunction(e.target.value as HashFunction)}
-          >
-            {hashFunctions.map(fn => (
-              <option key={fn.value} value={fn.value}>{fn.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="pad-strategy">Pad to power-of-two: </label>
-          <select
-            id="pad-strategy"
-            value={padStrategy}
-            onChange={e => setPadStrategy(e.target.value as PadStrategy)}
-          >
-            {padStrategies.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="combine-method">Combine Method: </label>
-          <select
-            id="combine-method"
-            value={combineMethod}
-            onChange={e => setCombineMethod(e.target.value as 'concat' | 'sum')}
-          >
-            {combineMethods.map(method => (
-              <option key={method.value} value={method.value}>{method.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <input
-            type="text"
-            value={leafInput}
-            onChange={e => setLeafInput(e.target.value)}
-            placeholder="Enter leaf preimage"
-            className={styles.input}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                handleAddLeaf();
-              }
-            }}
-          />
-          <button onClick={handleAddLeaf} className={styles.button}>Add Leaf</button>
-          
+        <div className={styles.optionsGrid}>
+          <div>
+            <label htmlFor="hash-fn">Hash Function: </label>
+            <select
+              id="hash-fn"
+              value={hashFunction}
+              onChange={e => setHashFunction(e.target.value as HashFunction)}
+            >
+              {hashFunctions.map(fn => (
+                <option key={fn.value} value={fn.value}>{fn.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="pad-strategy">Pad to power-of-two: </label>
+            <select
+              id="pad-strategy"
+              value={padStrategy}
+              onChange={e => setPadStrategy(e.target.value as PadStrategy)}
+            >
+              {padStrategies.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="combine-method">Combine Method: </label>
+            <select
+              id="combine-method"
+              value={combineMethod}
+              onChange={e => setCombineMethod(e.target.value as 'concat' | 'sum')}
+            >
+              {combineMethods.map(method => (
+                <option key={method.value} value={method.value}>{method.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', margin: '16px 0' }}>
           <label>
@@ -248,8 +235,20 @@ export default function MerkleTreePage() {
         )}
         <div>
           <h2>Leaves</h2>
-          <div style={{ color: '#888', fontSize: 14, marginBottom: 4 }}>
-            Drag the <span style={{fontFamily: 'monospace'}}>::</span> handle to reorder leaves
+          <div style={{ marginBottom: 16 }}>
+            <input
+              type="text"
+              value={leafInput}
+              onChange={e => setLeafInput(e.target.value)}
+              placeholder="Enter leaf preimage"
+              className={styles.input}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  handleAddLeaf();
+                }
+              }}
+            />
+            <button onClick={handleAddLeaf} className={styles.button}>Add Leaf</button>
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={leaves.map((_, i) => i.toString())} strategy={verticalListSortingStrategy}>
@@ -344,6 +343,7 @@ export default function MerkleTreePage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -1,0 +1,28 @@
+.footer {
+  margin-top: auto;
+  padding: 1rem 0;
+  background-color: var(--background);
+  border-top: 1px solid var(--border-color);
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--foreground);
+}
+
+.content a {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
+.content a:hover {
+  opacity: 0.8;
+} 
