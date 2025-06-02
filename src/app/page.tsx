@@ -9,7 +9,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  useDraggable,
+  DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -41,7 +41,7 @@ type PadStrategy = "copy" | "zero";
 
 const LOCAL_STORAGE_KEY = "merkle-visualizer-state";
 
-function DraggableLeaf({ id, children, disabled }: { id: string; children: (args: { attributes: any; listeners: any }) => React.ReactNode; disabled?: boolean }) {
+function DraggableLeaf({ id, children, disabled }: { id: string; children: (args: { attributes: React.HTMLAttributes<HTMLElement>; listeners: Record<string, (event: React.SyntheticEvent) => void> }) => React.ReactNode; disabled?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -51,7 +51,7 @@ function DraggableLeaf({ id, children, disabled }: { id: string; children: (args
   };
   return (
     <li ref={setNodeRef} style={style}>
-      {children({ attributes, listeners })}
+      {children({ attributes, listeners: listeners as Record<string, (event: React.SyntheticEvent) => void> })}
     </li>
   );
 }
@@ -80,7 +80,6 @@ export default function MerkleTreePage() {
         if (parsed.padStrategy) setPadStrategy(parsed.padStrategy);
       } catch {}
     }
-    // eslint-disable-next-line
   }, []);
 
   // Save state to localStorage on change
@@ -100,7 +99,7 @@ export default function MerkleTreePage() {
 
   const paddedLeaves = useMemo(() => {
     if (leaves.length === 0) return [];
-    let n = leaves.length;
+    const n = leaves.length;
     let nextPow2 = 1;
     while (nextPow2 < n) nextPow2 *= 2;
     if (n === nextPow2) return leaves;
@@ -120,13 +119,7 @@ export default function MerkleTreePage() {
     return getMerkleProof(paddedLeaves, hashFunction, selectedLeaf, commutative, combineMethod);
   }, [selectedLeaf, paddedLeaves, hashFunction, commutative, combineMethod]);
 
-  const handleCopyProof = () => {
-    if (proofResult) {
-      navigator.clipboard.writeText(JSON.stringify(proofResult, null, 2));
-    }
-  };
-
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active && over && active.id !== over.id) {
       const oldIndex = leaves.findIndex((_, i) => i.toString() === active.id);
@@ -255,7 +248,7 @@ export default function MerkleTreePage() {
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 {paddedLeaves.map((leaf, idx) => (
                   <DraggableLeaf key={idx} id={idx.toString()} disabled={idx >= leaves.length}>
-                    {({ attributes, listeners }: any) => (
+                    {({ attributes, listeners }: { attributes: React.HTMLAttributes<HTMLElement>; listeners: Record<string, (event: React.SyntheticEvent) => void> }) => (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         {idx < leaves.length && (
                           <span

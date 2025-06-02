@@ -2,7 +2,6 @@ import { keccak_256 } from 'js-sha3';
 import { sha256 } from 'js-sha256';
 import { blake2bHex } from 'blakejs';
 // @ts-expect-error: no types for ripemd160
-// eslint-disable-next-line
 import RIPEMD160 from 'ripemd160';
 
 export type MerkleNode = {
@@ -79,7 +78,7 @@ function buildTreeLevel(nodes: MerkleNode[], fn: HashFunction, commutative = fal
 export function getMerkleProof(leaves: string[], fn: HashFunction, leafIndex: number, commutative = false, combineMethod: 'concat' | 'sum' = 'concat'): { proof: string[]; leaf: string; leafIndex: number } | null {
   if (leaves.length === 0 || leafIndex < 0 || leafIndex >= leaves.length) return null;
   // Pad leaves to power of two as in buildMerkleTree
-  let n = leaves.length;
+  const n = leaves.length;
   let nextPow2 = 1;
   while (nextPow2 < n) nextPow2 *= 2;
   const padCount = nextPow2 - n;
@@ -96,8 +95,8 @@ export function getMerkleProof(leaves: string[], fn: HashFunction, leafIndex: nu
     // Build next level
     const nextLevel: string[] = [];
     for (let i = 0; i < level.length; i += 2) {
-      let left = level[i];
-      let right = level[i + 1] || level[i];
+      const left = level[i];
+      const right = level[i + 1] || level[i];
       nextLevel.push(hashParentNode(left, right, fn, combineMethod, commutative));
     }
     index = Math.floor(index / 2);

@@ -85,7 +85,7 @@ export default function MerkleTreeView({ root, showPreimage, showHash, showLabel
     if (showPreimage && nodeDatum.attributes?.preimage) lines++;
     if (showHash && nodeDatum.attributes?.hash) lines++;
     const boxHeight = 18 * lines + 18;
-    let y = -boxHeight / 2 + 16;
+    const y = -boxHeight / 2 + 16;
     let line = 0;
     const fullHash = nodeDatum.raw?.hash;
     return (
