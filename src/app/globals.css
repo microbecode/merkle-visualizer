@@ -42,7 +42,7 @@ a {
 }
 
 svg text {
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  font-family: "Inter", Arial, Helvetica, sans-serif;
   font-weight: 300 !important;
   paint-order: stroke fill;
   stroke: none;
