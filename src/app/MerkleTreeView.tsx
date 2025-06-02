@@ -45,14 +45,16 @@ interface MerkleTreeViewProps {
   root: MerkleNode | null;
   showPreimage: boolean;
   showHash: boolean;
+  showLabel: boolean;
 }
 
-export default function MerkleTreeView({ root, showPreimage, showHash }: MerkleTreeViewProps) {
+export default function MerkleTreeView({ root, showPreimage, showHash, showLabel }: MerkleTreeViewProps) {
   const treeData = useMemo(() => (root ? [merkleToD3(root)!] : []), [root]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 400, height: 400 });
   const [translate, setTranslate] = useState<{ x: number; y: number } | null>(null);
   const [treeKey, setTreeKey] = useState(0);
+  const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -78,12 +80,14 @@ export default function MerkleTreeView({ root, showPreimage, showHash }: MerkleT
 
   const renderCustomNode = ({ nodeDatum }: { nodeDatum: D3Node }) => {
     const boxWidth = 140;
-    let lines = 1;
+    let lines = 0;
+    if (showLabel) lines++;
     if (showPreimage && nodeDatum.attributes?.preimage) lines++;
     if (showHash && nodeDatum.attributes?.hash) lines++;
     const boxHeight = 18 * lines + 18;
     let y = -boxHeight / 2 + 16;
     let line = 0;
+    const fullHash = nodeDatum.raw?.hash;
     return (
       <g>
         <rect
@@ -96,18 +100,38 @@ export default function MerkleTreeView({ root, showPreimage, showHash }: MerkleT
           strokeWidth={1.5}
           rx={8}
         />
-        <text x={0} y={y + 18 * line++} textAnchor="middle" fontWeight="normal" fontSize="1em" fill="#222" fontFamily="Inter, Arial, Helvetica, sans-serif">
-          {nodeDatum.name}
-        </text>
+        {showLabel && (
+          <text x={0} y={y + 18 * line++} textAnchor="middle" fontWeight="normal" fontSize="1em" fill="#222" fontFamily="Inter, Arial, Helvetica, sans-serif">
+            {nodeDatum.name}
+          </text>
+        )}
         {showPreimage && nodeDatum.attributes?.preimage && (
           <text x={0} y={y + 18 * line++} textAnchor="middle" fontSize="0.95em" fill="#222" fontWeight="normal" fontFamily="Inter, Arial, Helvetica, sans-serif">
             {String(nodeDatum.attributes.preimage)}
           </text>
         )}
         {showHash && nodeDatum.attributes?.hash && (
-          <text x={0} y={y + 18 * line++} textAnchor="middle" fontSize="0.85em" fill="#222" fontWeight="normal" fontFamily="Inter, Arial, Helvetica, sans-serif">
-            {String(nodeDatum.attributes.hash)}
-          </text>
+          <foreignObject x={-boxWidth / 2 + 4} y={y + 18 * line - 12} width={boxWidth - 8} height={20} style={{ pointerEvents: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              <span style={{ fontSize: '0.85em', fontFamily: 'Inter, Arial, Helvetica, sans-serif', color: '#222', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 60 }} title={String(nodeDatum.raw?.hash)}>
+                {String(nodeDatum.attributes.hash)}
+              </span>
+              {fullHash && (
+                <button
+                  style={{ background: '#f5f5f5', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', padding: '2px 6px', fontSize: 12, marginLeft: 4, display: 'flex', alignItems: 'center' }}
+                  title="Copy hash to clipboard"
+                  onClick={e => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(fullHash);
+                    setCopiedHash(fullHash);
+                    setTimeout(() => setCopiedHash(null), 1000);
+                  }}
+                >
+                  {copiedHash === fullHash ? '✅' : '📋'}
+                </button>
+              )}
+            </div>
+          </foreignObject>
         )}
       </g>
     );

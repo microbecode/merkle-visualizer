@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import styles from "./page.module.css";
 import { buildMerkleTree, HashFunction } from "../merkleTree";
 import MerkleTreeView from "./MerkleTreeView";
@@ -21,6 +21,8 @@ import { CSS } from '@dnd-kit/utilities';
 const hashFunctions = [
   { label: "Keccak", value: "keccak" },
   { label: "SHA-256", value: "sha256" },
+  { label: "BLAKE2b", value: "blake2b" },
+  { label: "RIPEMD160", value: "ripemd160" },
 ];
 
 const padStrategies = [
@@ -29,6 +31,8 @@ const padStrategies = [
 ];
 
 type PadStrategy = "copy" | "zero";
+
+const LOCAL_STORAGE_KEY = "merkle-visualizer-state";
 
 function DraggableLeaf({ id, children, disabled }: { id: string; children: React.ReactNode; disabled?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
@@ -53,7 +57,30 @@ export default function MerkleTreePage() {
   const [showPreimage, setShowPreimage] = useState(true);
   const [showHash, setShowHash] = useState(true);
   const [padStrategy, setPadStrategy] = useState<PadStrategy>("copy");
+  const [showLabel, setShowLabel] = useState(true);
   const sensors = useSensors(useSensor(PointerSensor));
+
+  // Restore state from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.leaves && Array.isArray(parsed.leaves)) setLeaves(parsed.leaves);
+        if (parsed.hashFunction) setHashFunction(parsed.hashFunction);
+        if (parsed.padStrategy) setPadStrategy(parsed.padStrategy);
+      } catch {}
+    }
+    // eslint-disable-next-line
+  }, []);
+
+  // Save state to localStorage on change
+  useEffect(() => {
+    localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify({ leaves, hashFunction, padStrategy })
+    );
+  }, [leaves, hashFunction, padStrategy]);
 
   const handleAddLeaf = () => {
     if (leafInput.trim()) {
@@ -90,10 +117,17 @@ export default function MerkleTreePage() {
     }
   };
 
+  const handleResetState = () => {
+    setLeaves([]);
+    setHashFunction("keccak");
+    setPadStrategy("copy");
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  };
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <h1>Merkle Tree Visualizer</h1>
+        <h1>Merkle Tree Visualizer</h1>        
         <div>
           <label htmlFor="hash-fn">Hash Function: </label>
           <select
@@ -127,8 +161,17 @@ export default function MerkleTreePage() {
             className={styles.input}
           />
           <button onClick={handleAddLeaf} className={styles.button}>Add Leaf</button>
+          
         </div>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', margin: '16px 0' }}>
+        <label>
+            <input
+              type="checkbox"
+              checked={showLabel}
+              onChange={e => setShowLabel(e.target.checked)}
+            />
+            Show label
+          </label>
           <label>
             <input
               type="checkbox"
@@ -145,15 +188,23 @@ export default function MerkleTreePage() {
             />
             Show hash
           </label>
+          
+          <button onClick={handleResetState} className={styles.button}>Reset State</button>
         </div>
         <div>
           <h2>Leaves</h2>
+          <div style={{ color: '#888', fontSize: 14, marginBottom: 4 }}>
+            Drag the <span style={{fontFamily: 'monospace'}}>::</span> handle to reorder leaves
+          </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={leaves.map((_, i) => i.toString())} strategy={verticalListSortingStrategy}>
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 {paddedLeaves.map((leaf, idx) => (
                   <DraggableLeaf key={idx} id={idx.toString()} disabled={idx >= leaves.length}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {idx < leaves.length && (
+                        <span style={{ cursor: 'grab', color: '#bbb', fontSize: 18, marginRight: 8, marginLeft: 2, userSelect: 'none' }} title="Drag to reorder">⋮</span>
+                      )}
                       {leaf}
                       {idx < leaves.length && (
                         <button
@@ -174,7 +225,7 @@ export default function MerkleTreePage() {
         <div>
           <h2>Merkle Tree Visualization</h2>
           <div className={styles.treeContainer}>
-            <MerkleTreeView root={tree} showPreimage={showPreimage} showHash={showHash} />
+            <MerkleTreeView root={tree} showPreimage={showPreimage} showHash={showHash} showLabel={showLabel} />
           </div>
         </div>
       </main>

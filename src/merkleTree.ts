@@ -1,5 +1,9 @@
 import { keccak_256 } from 'js-sha3';
 import { sha256 } from 'js-sha256';
+import { blake2bHex } from 'blakejs';
+// @ts-expect-error: no types for ripemd160
+// eslint-disable-next-line
+import RIPEMD160 from 'ripemd160';
 
 export type MerkleNode = {
   hash: string;
@@ -9,11 +13,14 @@ export type MerkleNode = {
   preimage?: string;
 };
 
-export type HashFunction = 'keccak' | 'sha256';
+export type HashFunction = 'keccak' | 'sha256' | 'blake2b' | 'ripemd160';
 
 function hashValue(value: string, fn: HashFunction): string {
   if (fn === 'keccak') return keccak_256(value);
-  return sha256(value);
+  if (fn === 'sha256') return sha256(value);
+  if (fn === 'blake2b') return blake2bHex(value);
+  if (fn === 'ripemd160') return new RIPEMD160().update(Buffer.from(value)).digest('hex');
+  return value;
 }
 
 export function buildMerkleTree(leaves: string[], fn: HashFunction): MerkleNode | null {
