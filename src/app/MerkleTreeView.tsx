@@ -134,7 +134,7 @@ export default function MerkleTreeView({ root, showPreimage, showHash, showLabel
           </foreignObject>
         )}
       </g>
-    );
+    ); 
   };
 
   if (!root) return <div>No tree to display.</div>;
